@@ -1,0 +1,1 @@
+# docker-shibboleth-sp-proxy
