@@ -1,0 +1,4 @@
+---
+
+- name: Configure supervisor
+  template: src=supervisord.conf.j2 dest=/etc/supervisor/supervisord.conf

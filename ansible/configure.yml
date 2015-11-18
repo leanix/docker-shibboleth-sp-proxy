@@ -1,0 +1,23 @@
+---
+
+- hosts: localhost
+  sudo: yes
+  vars:
+    server_name: "{{ lookup('env', 'SERVER_NAME') }}"
+    server_type: "{{ lookup('env', 'SERVER_TYPE') }}"
+
+    shibboleth_sp_host: "{{ server_name }}"
+    shibboleth_sp_certname: "{{ lookup('env', 'SHIBBOLETH_CERTNAME') }}"
+    shibboleth_sp_cert_dir: /etc/certs
+
+    idp_uri: "{{ lookup('env', 'IDP_URI')}}"
+    idp_metadata_dir: /etc/shibboleth/idp
+    idp_metadata_file: metadata-idp.xml
+
+    apache_ports:
+     - 80
+
+  roles:
+    - {role: 'shibboleth-config' }
+    - {role: 'jobs' }
+    - {role: 'virtualhost' }

@@ -1,0 +1,85 @@
+<VirtualHost *:80>
+    ServerName https://{{server_name}}
+	UseCanonicalName On
+	ErrorLog ${APACHE_LOG_DIR}/error.log
+	CustomLog ${APACHE_LOG_DIR}/access.log combined
+
+	DocumentRoot "/var/www/html"
+
+	<Directory /var/www/html>
+        Options -Indexes -FollowSymLinks
+        AllowOverride All
+        AuthType shibboleth
+		ShibRequestSetting requireSession true
+		Require shibboleth
+	</Directory>
+
+    # ProxyPass / http://new.domain.tld/
+    # ProxyPassReverse / http://new.domain.tld/
+</VirtualHost>
+
+
+# <VirtualHost *:80>
+# 	ServerName https://{{server_name}}
+# 	UseCanonicalName On
+# 	DocumentRoot "/var/www/www"
+# 	ErrorLog ${APACHE_LOG_DIR}/error.log
+# 	CustomLog ${APACHE_LOG_DIR}/access.log combined
+
+# 	LimitRequestFieldSize 16384
+
+# 	php_value session.gc_maxlifetime 7200
+
+# 	RewriteEngine on
+
+# 	# Required for swagger
+# 	RewriteRule ^(.*)/images/throbber.gif /img/swagger/throbber.gif
+# 	RewriteRule ^(.*)/api/images/throbber.gif /img/swagger/throbber.gif
+
+#     RewriteCond %{DOCUMENT_ROOT}%{REQUEST_FILENAME} !-f
+# 	RewriteCond %{DOCUMENT_ROOT}%{REQUEST_FILENAME} !-d
+#     RewriteRule ([a-zA-Z0-9]{1,})/feeds/(.*)$ $1/api/v1/feeds/$2 [R=301,L]
+
+# 	RewriteCond %{DOCUMENT_ROOT}%{REQUEST_FILENAME} !-f
+# 	RewriteCond %{DOCUMENT_ROOT}%{REQUEST_FILENAME} !-d
+# 	RewriteCond %{REQUEST_URI} !=/favicon.ico
+#     RewriteCond %{REQUEST_URI} !^/Shibboleth.sso($|/)
+
+# 	RewriteRule ^(.*)$ /index.php/$1 [L]
+
+# 	<Directory /var/www/www>
+#         Options -Indexes -FollowSymLinks
+#         AllowOverride All
+#         AuthType shibboleth
+# 		ShibRequestSetting requireSession true
+# 		Require shibboleth
+# 	</Directory>
+
+# 	<Location /assets>
+# 		AuthType shibboleth
+# 		ShibRequestSetting requireSession false
+# 		require shibboleth
+#     </Location>
+
+# 	<Location /img>
+# 		AuthType shibboleth
+# 		ShibRequestSetting requireSession false
+# 		require shibboleth
+#     </Location>
+
+# 	<Location /favicon.ico>
+# 		AuthType shibboleth
+# 		ShibRequestSetting requireSession false
+# 		require shibboleth
+#     </Location>
+
+# 	<Files *.php>
+# 	 	Order Deny,Allow
+# 		Deny from all
+# 	</Files>
+
+# 	<Files index.php>
+# 		Order Allow,Deny
+# 		Allow from all
+# 	</Files>
+# </VirtualHost>
