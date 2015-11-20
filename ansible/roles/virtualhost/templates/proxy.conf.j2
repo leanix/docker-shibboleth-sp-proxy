@@ -1,0 +1,15 @@
+<VirtualHost *:80>
+    ServerName https://{{server_name}}
+    UseCanonicalName On
+    ErrorLog ${APACHE_LOG_DIR}/error.log
+    CustomLog ${APACHE_LOG_DIR}/access.log combined
+
+    <Proxy *>
+        AuthType shibboleth
+        ShibRequestSetting requireSession true
+        Require shibboleth
+    </Proxy>
+
+    ProxyPass / http://{{ lookup('env', 'TEAM_1_PORT_8080_TCP_ADDR') }}:{{ lookup('env', 'TEAM_1_PORT_8080_TCP_PORT') }}/
+    ProxyPassReverse / http://{{ lookup('env', 'TEAM_1_PORT_8080_TCP_ADDR') }}:{{ lookup('env', 'TEAM_1_PORT_8080_TCP_PORT') }}/
+</VirtualHost>
