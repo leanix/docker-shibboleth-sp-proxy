@@ -4,18 +4,14 @@
 	ErrorLog ${APACHE_LOG_DIR}/error.log
 	CustomLog ${APACHE_LOG_DIR}/access.log combined
 
-	DocumentRoot "/var/www/html"
-
-	<Directory /var/www/html>
-        Options -Indexes -FollowSymLinks
-        AllowOverride All
-        AuthType shibboleth
+	<Proxy *>
+    	AuthType shibboleth
 		ShibRequestSetting requireSession true
 		Require shibboleth
-	</Directory>
+	</Proxy>
 
-    # ProxyPass / http://new.domain.tld/
-    # ProxyPassReverse / http://new.domain.tld/
+    ProxyPass / http://{{ lookup('env', 'TEAM_1_PORT_8080_TCP_ADDR') }}:{{ lookup('env', 'TEAM_1_PORT_8080_TCP_PORT') }}/
+    ProxyPassReverse / http://{{ lookup('env', 'TEAM_1_PORT_8080_TCP_ADDR') }}:{{ lookup('env', 'TEAM_1_PORT_8080_TCP_PORT') }}/
 </VirtualHost>
 
 
