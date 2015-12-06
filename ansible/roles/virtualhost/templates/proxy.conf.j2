@@ -10,6 +10,11 @@
         Require shibboleth
     </Proxy>
 
+    ProxyRequests Off
+    ProxyPreserveHost On
     ProxyPass / http://{{ lookup('env', 'TEAM_1_PORT_8080_TCP_ADDR') }}:{{ lookup('env', 'TEAM_1_PORT_8080_TCP_PORT') }}/
     ProxyPassReverse / http://{{ lookup('env', 'TEAM_1_PORT_8080_TCP_ADDR') }}:{{ lookup('env', 'TEAM_1_PORT_8080_TCP_PORT') }}/
+    RequestHeader unset Accept-Encoding
+    AddOutputFilterByType SUBSTITUTE text/html
+    Substitute "s|http://{{server_name}}|https://{{server_name}}|ni"
 </VirtualHost>
