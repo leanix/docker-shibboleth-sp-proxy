@@ -2,4 +2,6 @@
 
 apache_modules:
   - proxy 
-  - proxy_http 
+  - proxy_http
+  - substitute
+  - headers 
