@@ -15,16 +15,3 @@
 - name: copying logger config
   sudo: yes
   copy: src=shibd.logger dest=/etc/shibboleth/shibd.logger
-
-- name: Assures cert dir exists
-  file: path={{ idp_metadata_dir }} state=directory
-
-# modify apache/sp for operation behind proxy
-# https://wiki.shibboleth.net/confluence/display/SHIB2/SPReverseProxy
-
-- name: Create custom config
-  template: src=my.conf.j2 dest="/etc/apache2/conf-available/z-my.conf"
-
-- name: Install custom config
-  command: a2enconf "z-my" creates="/etc/apache2/conf-enabled/z-my.conf"
-

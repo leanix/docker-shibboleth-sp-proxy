@@ -1,5 +1,5 @@
 ---
 
-- name: enabling virtualhost
+- name: enabling proxy vhosts
   template: src=proxy.conf.j2 dest=/etc/apache2/sites-enabled/proxy.conf owner=www-data
 

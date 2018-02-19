@@ -4,115 +4,187 @@
           xmlns:samlp="urn:oasis:names:tc:SAML:2.0:protocol"
           xmlns:md="urn:oasis:names:tc:SAML:2.0:metadata"
           clockSkew="180">
-
-	<!--
-	By default, in-memory StorageService, ReplayCache, ArtifactMap, and SessionCache
-	are used. See example-shibboleth2.xml for samples of explicitly configuring them.
-	-->
-
-	<!--
-	To customize behavior for specific resources on Apache, and to link vhosts or
-	resources to ApplicationOverride settings below, use web server options/commands.
-	See https://wiki.shibboleth.net/confluence/display/SHIB2/NativeSPConfigurationElements for help.
-
-	For examples with the RequestMap XML syntax instead, see the example-shibboleth2.xml
-	file, and the https://wiki.shibboleth.net/confluence/display/SHIB2/NativeSPRequestMapHowTo topic.
-	-->
-
-	<!-- The ApplicationDefaults element is where most of Shibboleth's SAML bits are defined. -->
-	<ApplicationDefaults entityID="https://{{ shibboleth_sp_host }}/Shibboleth.sso"
-	                     REMOTE_USER="eppn persistent-id targeted-id">
-
-		<!--
-		Controls session lifetimes, address checks, cookie handling, and the protocol handlers.
-		You MUST supply an effectively unique handlerURL value for each of your applications.
-		The value defaults to /Shibboleth.sso, and should be a relative path, with the SP computing
-		a relative value based on the virtual host. Using handlerSSL="true", the default, will force
-		the protocol to be https. You should also set cookieProps to "https" for SSL-only sites.
-		Note that while we default checkAddress to "false", this has a negative impact on the
-		security of your site. Stealing sessions via cookie theft is much easier with this disabled.
-		-->
-		<Sessions lifetime="28800" timeout="3600" relayState="cookie:3" handlerURL="/Shibboleth.sso"
-		          checkAddress="false" handlerSSL="true" cookieProps="https">
-
-			<!--
-			Configures SSO for a default IdP. To allow for >1 IdP, remove
-			entityID property and adjust discoveryURL to point to discovery service.
-			(Set discoveryProtocol to "WAYF" for legacy Shibboleth WAYF support.)
-			You can also override entityID on /Login query string, or in RequestMap/htaccess.
-			-->
-
-			<SSO entityID="{{idp_uri}}">
-				SAML2
-			</SSO>
-
-			<!-- SAML and local-only logout. -->
-			<Logout>SAML2 Local</Logout>
-
-			<!-- Extension service that generates "approximate" metadata based on SP configuration. -->
-			<Handler type="MetadataGenerator" Location="/Metadata" signing="true" http="false" https="true"/>
-
-			<!-- Status reporting service. -->
-			<Handler type="Status" Location="/Status" acl="127.0.0.1 ::1"/>
-
-			<!-- Session diagnostic service. -->
-			<Handler type="Session" Location="/Session" showAttributeValues="false"/>
-
-			<!-- JSON feed of discovery information. -->
-			<Handler type="DiscoveryFeed" Location="/DiscoFeed"/>
-		</Sessions>
-
-		<!--
-		Allows overriding of error template information/filenames. You can
-		also add attributes with values that can be plugged into the templates.
-		-->
-		<Errors supportContact="root@localhost"
-		        helpLocation="/about.html"
-		        styleSheet="/shibboleth-sp/main.css"/>
-
-		<!-- Example of remotely supplied batch of signed metadata. -->
-		<!--
-		<MetadataProvider type="XML" uri="http://federation.org/federation-metadata.xml"
-			  backingFilePath="federation-metadata.xml" reloadInterval="7200">
-			<MetadataFilter type="RequireValidUntil" maxValidityInterval="2419200"/>
-			<MetadataFilter type="Signature" certificate="fedsigner.pem"/>
-		</MetadataProvider>
-		-->
-
-		<!-- Example of locally maintained metadata. -->
-		<MetadataProvider type="XML" file="{{ idp_metadata_dir }}/{{ idp_metadata_file }}"/>
-
-		<!-- Map to extract attributes from SAML assertions. -->
-		<AttributeExtractor type="XML" validate="true" reloadChanges="true" path="attribute-map.xml"/>
-
-		<!-- Use a SAML query if no attributes are supplied during SSO. -->
-		<AttributeResolver type="Query" subjectMatch="true"/>
-
-		<!-- Default filtering policy for recognized attributes, lets other data pass. -->
-		<AttributeFilter type="XML" validate="true" path="attribute-policy.xml"/>
-
-		<!-- Simple file-based resolver for using a single keypair. -->
-		<CredentialResolver type="File" key="{{ shibboleth_sp_cert_dir }}/{{ shibboleth_sp_certname }}.key"
-		certificate="{{ shibboleth_sp_cert_dir }}/{{ shibboleth_sp_certname }}.crt"/>
-
-		<!--
-		The default settings can be overridden by creating ApplicationOverride elements (see
-		the https://wiki.shibboleth.net/confluence/display/SHIB2/NativeSPApplicationOverride topic).
-		Resource requests are mapped by web server commands, or the RequestMapper, to an
-		applicationId setting.
-
-		Example of a second application (for a second vhost) that has a different entityID.
-		Resources on the vhost would map to an applicationId of "admin":
-		-->
-		<!--
-		<ApplicationOverride id="admin" entityID="https://admin.example.org/shibboleth"/>
-		-->
-	</ApplicationDefaults>
-
-	<!-- Policies that determine how to process and authenticate runtime messages. -->
-	<SecurityPolicyProvider type="XML" validate="true" path="security-policy.xml"/>
-
-	<!-- Low-level configuration about protocols and bindings available for use. -->
-	<ProtocolProvider type="XML" validate="true" reloadChanges="false" path="protocols.xml"/>
-
+    <RequestMapper type="Native">
+        <RequestMap authType="shibboleth" requireSession="true">
+          <!-- Declare the host for the Archivematica Dashboard -->
+          <Host applicationId="am-dash"
+            name="{{ am_dashboard_host }}"
+            scheme="http" port="80">
+            <!-- Access to the Archivematica Dashboard requires preservation entitlement -->
+            <AccessControl>
+                <OR>
+                    <Rule require="entitlement">preservation-admin</Rule>
+                    <Rule require="entitlement">preservation-user</Rule>
+                </OR>
+            </AccessControl>
+            <!-- Don't apply access control to api and media resources -->
+            <Path name="api" authType="None" requireSession="false"/>
+            <Path name="media" authType="None" requireSession="false"/>
+          </Host>
+          <!-- Declare the host for the Archivematica Storage Service -->
+          <Host applicationId="am-ss"
+            name="{{ am_storage_service_host }}"
+            scheme="http" port="80">
+            <!-- Access to the Archivematica Storage Service requires preservation entitlement -->
+            <AccessControl>
+                <OR>
+                    <Rule require="entitlement">preservation-admin</Rule>
+                    <Rule require="entitlement">preservation-user</Rule>
+                </OR>
+            </AccessControl>
+            <!-- Don't apply access control to api and static resources -->
+            <Path name="api" authType="None" requireSession="false"/>
+            <Path name="static" authType="None" requireSession="false"/>
+          </Host>
+        </RequestMap>
+    </RequestMapper>
+    <ApplicationDefaults entityID="default-always-overridden"
+            REMOTE_USER="eppn persistent-id targeted-id"
+            sessionHook="/Shibboleth.sso/AttrChecker"
+            metadataAttributePrefix="Meta-" >
+        <!-- Session config -->
+        <Sessions lifetime="28800" timeout="3600" relayState="cookie:3"
+                checkAddress="false"
+                handlerSSL="true"
+                cookieProps="https"
+                handlerURL="/Shibboleth.sso">
+            <SSO entityID="{{shibboleth_idp_entity_id}}">SAML2</SSO>
+            <Logout>SAML2 Local</Logout>
+            <Handler type="MetadataGenerator" Location="/metadata" signing="true" http="false" https="true"/>
+            <Handler type="Status" Location="/status" />
+            <Handler type="Session" Location="/session" showAttributeValues="true"/>
+           <!-- Troubleshooting -->
+           <Handler type="AttributeChecker" Location="/AttrChecker" attributes="cn entitlement eppn givenName mail sn"
+                template="attrChecker.html" flushSession="true" showAttributeValues="true"/>
+        </Sessions>
+        <Errors supportContact="{{shibboleth_support_email}}"
+                helpLocation="/about.html"
+                styleSheet="/shibboleth-sp/main.css"/>
+        <!-- Default trust credentials for TLS - use Dashboard key and certs -->
+        <CredentialResolver type="File" use="TLS">
+          <Key>
+            <Path>{{ am_dashboard_ssl_key_file }}</Path>
+          </Key>
+          <Certificate>
+            <Path>{{ am_dashboard_ssl_cert_file }}</Path>
+            <Path>{{ am_dashboard_ssl_ca_bundle_file }}</Path>
+          </Certificate>
+        </CredentialResolver>
+        <!-- Metadata provider -->
+        <MetadataProvider type="Dynamic"
+            minCacheDuration="10" refreshDelayFactory="0.1">
+                <Subst>{{ shibboleth_metadata_url_subst }}</Subst>
+                <!--<MetadataFilter type="Signature" certificate="{{ shibboleth_metadata_signing_cert }}"/>-->
+                <TrustEngine type="Chaining">
+                <TrustEngine type="ExplicitKey"/>
+                <TrustEngine type="StaticPKIX">
+                    <!-- Use Dashboard key and cert when fetching IdP metadata -->
+                    <CredentialResolver type="File" use="TLS">
+                         <Key>
+                             <Path>{{ am_dashboard_ssl_key_file }}</Path>
+                         </Key>
+                         <Certificate>
+                             <Path>{{ am_dashboard_ssl_cert_file }}</Path>
+                             <Path>{{ am_dashboard_ssl_ca_bundle_file }}</Path>
+                        </Certificate>
+                    </CredentialResolver>
+                </TrustEngine>
+                <TrustEngine type="PKIX"/>
+            </TrustEngine>
+        </MetadataProvider>
+        <!-- Attributes config -->
+        <AttributeExtractor type="XML" validate="true" reloadChanges="true" path="attribute-map.xml"/>
+        <AttributeResolver type="Query" subjectMatch="true"/>
+        <AttributeFilter type="XML" validate="true" reloadChanges="true" path="attribute-policy.xml"/>
+    <!-- Archivematica Dashboard application -->
+    <ApplicationOverride id="am-dash"
+      entityID="https://{{am_dashboard_host}}/Shibboleth.sso/metadata">
+        <!-- Trust credentials config -->
+        <CredentialResolver type="File">
+          <Key>
+            <Path>{{ am_dashboard_ssl_key_file }}</Path>
+          </Key>
+          <Certificate>
+            <Path>{{ am_dashboard_ssl_cert_file }}</Path>
+            <Path>{{ am_dashboard_ssl_ca_bundle_file }}</Path>
+          </Certificate>
+        </CredentialResolver>
+        <!-- Trust engine -->
+        <TrustEngine type="Chaining">
+            <TrustEngine type="ExplicitKey"/>
+                <TrustEngine type="StaticPKIX">
+                    <CredentialResolver type="File">
+                         <Key>
+                             <Path>{{ am_dashboard_ssl_key_file }}</Path>
+                         </Key>
+                         <Certificate>
+                             <Path>{{ am_dashboard_ssl_cert_file }}</Path>
+                             <Path>{{ am_dashboard_ssl_ca_bundle_file }}</Path>
+                        </Certificate>
+                    </CredentialResolver>
+                </TrustEngine>
+            <TrustEngine type="PKIX"/>
+        </TrustEngine>
+        </ApplicationOverride>
+        <!-- Archivematica Storage Service application -->
+        <ApplicationOverride id="am-ss"
+          entityID="http://{{ am_storage_service_host }}/Shibboleth.sso/metadata">
+            <!-- Trust credentials config -->
+            <CredentialResolver type="File">
+              <Key>
+                <Path>{{ am_storage_service_ssl_key_file }}</Path>
+              </Key>
+              <Certificate>
+                <Path>{{ am_storage_service_ssl_cert_file }}</Path>
+                <Path>{{ am_storage_service_ssl_ca_bundle_file }}</Path>
+              </Certificate>
+            </CredentialResolver>
+            <!-- Trust engine -->
+            <TrustEngine type="Chaining">
+                <TrustEngine type="ExplicitKey"/>
+                    <TrustEngine type="StaticPKIX">
+                        <CredentialResolver type="File" use="TLS">
+                             <Key>
+                                 <Path>{{ am_storage_service_ssl_key_file }}</Path>
+                             </Key>
+                             <Certificate>
+                                 <Path>{{ am_storage_service_ssl_cert_file }}</Path>
+                                 <Path>{{ am_storage_service_ssl_ca_bundle_file }}</Path>
+                            </Certificate>
+                        </CredentialResolver>
+                    </TrustEngine>
+                <TrustEngine type="PKIX"/>
+            </TrustEngine>
+            <MetadataProvider type="Dynamic"
+                minCacheDuration="10" refreshDelayFactory="0.1">
+                    <Subst>{{ shibboleth_metadata_url_subst }}</Subst>
+                    <!--<MetadataFilter type="Signature" certificate="{{ shibboleth_metadata_signing_cert }}"/>-->
+                    <TrustEngine type="Chaining">
+                    <TrustEngine type="ExplicitKey"/>
+                    <TrustEngine type="StaticPKIX">
+                        <!-- Use Dashboard key and cert when fetching IdP metadata -->
+                        <CredentialResolver type="File" use="TLS">
+                             <Key>
+                                 <Path>{{ am_storage_service_ssl_key_file }}</Path>
+                             </Key>
+                             <Certificate>
+                                 <Path>{{ am_storage_service_ssl_cert_file }}</Path>
+                                 <Path>{{ am_storage_service_ssl_ca_bundle_file }}</Path>
+                             </Certificate>
+                        </CredentialResolver>
+                    </TrustEngine>
+                    <TrustEngine type="PKIX"/>
+                </TrustEngine>
+            </MetadataProvider>
+        </ApplicationOverride>
+        <!-- Troubleshooting: Extracts support information for IdP from its metadata. -->
+        <AttributeExtractor type="Metadata" errorURL="errorURL" DisplayName="displayName"
+            InformationURL="informationURL" PrivacyStatementURL="privacyStatementURL"
+            OrganizationURL="organizationURL">
+            <ContactPerson id="Support-Contact"  contactType="support" formatter="$EmailAddress" />
+            <Logo id="Small-Logo" height="16" width="16" formatter="$_string"/>
+        </AttributeExtractor>
+    </ApplicationDefaults>
+    <SecurityPolicyProvider type="XML" validate="true" path="security-policy.xml"/>
+    <ProtocolProvider type="XML" validate="true" reloadChanges="false" path="protocols.xml"/>
 </SPConfig>

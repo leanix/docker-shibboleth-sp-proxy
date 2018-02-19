@@ -1,20 +1,49 @@
+
+ErrorLog ${APACHE_LOG_DIR}/error.log
+CustomLog ${APACHE_LOG_DIR}/access.log combined
+
+# Archivematica Dashboard
 <VirtualHost *:80>
-    ServerName https://{{server_name}}
+    ServerName https://{{am_dashboard_host}}
+    UseCanonicalName On
+
+    <Proxy *>
+        AuthType shibboleth
+        ShibRequestSetting applicationId am-dash
+        ShibRequestSetting requireSession true
+        ShibUseHeaders On
+        Require shibboleth
+    </Proxy>
+
+    ProxyRequests Off
+    ProxyPreserveHost On
+    ProxyPass / http://{{target_proxy_host}}:{{am_dashboard_target_port}}/
+    ProxyPassReverse / http://{{target_proxy_host}}:{{am_dashboard_target_port}}/
+    RequestHeader unset Accept-Encoding
+    AddOutputFilterByType SUBSTITUTE text/html
+    Substitute "s|http://{{am_dashboard_host}}|https://{{am_dashboard_host}}|ni"
+</VirtualHost>
+
+# Archivematica Storage Service
+<VirtualHost *:80>
+    ServerName https://{{am_storage_service_host}}
     UseCanonicalName On
     ErrorLog ${APACHE_LOG_DIR}/error.log
     CustomLog ${APACHE_LOG_DIR}/access.log combined
 
     <Proxy *>
         AuthType shibboleth
+        ShibRequestSetting applicationId am-ss
         ShibRequestSetting requireSession true
+        ShibUseHeaders On
         Require shibboleth
     </Proxy>
 
     ProxyRequests Off
     ProxyPreserveHost On
-    ProxyPass / http://{{ lookup('env', 'TEAM_1_PORT_8080_TCP_ADDR') }}:{{ lookup('env', 'TEAM_1_PORT_8080_TCP_PORT') }}/
-    ProxyPassReverse / http://{{ lookup('env', 'TEAM_1_PORT_8080_TCP_ADDR') }}:{{ lookup('env', 'TEAM_1_PORT_8080_TCP_PORT') }}/
+    ProxyPass / http://{{target_proxy_host}}:{{am_storage_service_target_port}}/
+    ProxyPassReverse / http://{{target_proxy_host}}:{{am_storage_service_target_port}}/
     RequestHeader unset Accept-Encoding
     AddOutputFilterByType SUBSTITUTE text/html
-    Substitute "s|http://{{server_name}}|https://{{server_name}}|ni"
+    Substitute "s|http://{{am_storage_service_host}}|https://{{am_storage_service_host}}|ni"
 </VirtualHost>
