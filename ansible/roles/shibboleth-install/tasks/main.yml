@@ -1,7 +1,7 @@
 ---
 
 - name: Install apache2 shibboleth module
-  sudo: yes
+  become: yes
   apt: name=libapache2-mod-shib2
        state=installed
 

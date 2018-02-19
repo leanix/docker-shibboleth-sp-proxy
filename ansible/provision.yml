@@ -1,9 +1,9 @@
 ---
 
 - hosts: localhost
-  sudo: yes
+  become: yes
   roles:
-    - {role: 'apache2', tags:["apache"]}
-    - {role: 'shibboleth-install', tags:["shibboleth-install"]}
-    - {role: 'supervisor', tags:["supervisor"]}
+    - {role: apache2, tags: ["apache"]}
+    - {role: shibboleth-install, tags: ["shibboleth-install"]}
+    - {role: supervisor, tags: ["supervisor"]}
 
