@@ -1,0 +1,17 @@
+---
+
+language: bash
+
+install:
+  # Install ansible-lint and yamllint for testing YAML files
+  - pip install --user ansible-lint yamllint
+
+script:
+  # Validate our Ansible playbooks
+  - python -myamllint -f parsable ansible/
+  - ansible-lint -p ansible/*.yml
+  # TODO Add additional validation/build steps here
+
+notifications:
+  email: false
+
