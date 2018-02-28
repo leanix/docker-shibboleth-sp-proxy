@@ -24,8 +24,20 @@ stdout_logfile_maxbytes=0
 stderr_logfile=/dev/stderr
 stderr_logfile_maxbytes=0
 
-[program:logoutput]
-command=tail -f /var/log/apache2/error.log
+[program:log-apache2-access]
+command=tail -F /var/log/apache2/access.log
+autostart=true
+autorestart=true
+user=root
+numprocs=1
+redirect_stderr=true
+stdout_logfile=/dev/stdout
+stdout_logfile_maxbytes=0
+stderr_logfile=/dev/stderr
+stderr_logfile_maxbytes=0
+
+[program:log-apache2-error]
+command=tail -F /var/log/apache2/error.log
 autostart=true
 autorestart=true
 user=root

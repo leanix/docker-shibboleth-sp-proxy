@@ -1,0 +1,6 @@
+# Ignore editor temp files
+*~
+*.swp
+
+# Ingore build files
+build
