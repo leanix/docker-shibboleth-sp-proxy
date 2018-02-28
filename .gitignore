@@ -2,3 +2,5 @@
 *~
 *.swp
 
+# Ingore build files
+build
