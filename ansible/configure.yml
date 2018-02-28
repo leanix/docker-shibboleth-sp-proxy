@@ -1,31 +1,49 @@
 ---
 
 - hosts: localhost
-  become: yes
+  become: "yes"
   vars:
+    # Host to direct proxied requests to (e.g. 'nginx')
     target_proxy_host: "{{ lookup('env', 'TARGET_PROXY_HOST') }}"
-    
-    am_dashboard_host: "{{ lookup('env', 'AM_DASHBOARD_HOST') }}"
-    am_dashboard_ssl_ca_bundle_file: "{{ lookup('env', 'AM_DASHBOARD_SSL_CA_BUNDLE_FILE') }}"
-    am_dashboard_ssl_cert_file: "{{ lookup('env', 'AM_DASHBOARD_SSL_CERT_FILE') }}"
-    am_dashboard_ssl_key_file: "{{ lookup('env', 'AM_DASHBOARD_SSL_KEY_FILE') }}"
-    am_dashboard_target_port: "{{ lookup('env', 'AM_DASHBOARD_TARGET_PORT') }}"
-    
-    am_storage_service_host: "{{ lookup('env', 'AM_STORAGE_SERVICE_HOST') }}"
-    am_storage_service_ssl_ca_bundle_file: "{{ lookup('env', 'AM_STORAGE_SERVICE_SSL_CA_BUNDLE_FILE') }}"
-    am_storage_service_ssl_cert_file: "{{ lookup('env', 'AM_STORAGE_SERVICE_SSL_CERT_FILE') }}"
-    am_storage_service_ssl_key_file: "{{ lookup('env', 'AM_STORAGE_SERVICE_SSL_KEY_FILE') }}"
-    am_storage_service_target_port: "{{ lookup('env', 'AM_STORAGE_SERVICE_TARGET_PORT') }}"
-    
-    shibboleth_idp_entity_id: "{{ lookup('env', 'SHIBBOLETH_IDP_ENTITY_ID')}}"
-    shibboleth_metadata_url_subst: "{{ lookup('env', 'SHIBBOLETH_METADATA_URL_SUBST')}}"
-    shibboleth_metadata_signing_cert: "{{ lookup('env', 'SHIBBOLETH_METADATA_SIGNING_CERT') }}"
-    shibboleth_support_email: "{{ lookup('env', 'SHIBBOLETH_SUPPORT_EMAIL') }}"
 
+    # Archivematica Dashboard config
+    am_dashboard_host: "{{ lookup('env', 'AM_DASHBOARD_HOST') }}"
+    am_dashboard_ssl_ca_bundle_file:
+      "{{ lookup('env', 'AM_DASHBOARD_SSL_CA_BUNDLE_FILE') }}"
+    am_dashboard_ssl_cert_file:
+      "{{ lookup('env', 'AM_DASHBOARD_SSL_CERT_FILE') }}"
+    am_dashboard_ssl_key_file:
+      "{{ lookup('env', 'AM_DASHBOARD_SSL_KEY_FILE') }}"
+    am_dashboard_target_port:
+      "{{ lookup('env', 'AM_DASHBOARD_TARGET_PORT') }}"
+
+    # Archivematica Storage service config
+    am_storage_service_host:
+      "{{ lookup('env', 'AM_STORAGE_SERVICE_HOST') }}"
+    am_storage_service_ssl_ca_bundle_file:
+      "{{ lookup('env', 'AM_STORAGE_SERVICE_SSL_CA_BUNDLE_FILE') }}"
+    am_storage_service_ssl_cert_file:
+      "{{ lookup('env', 'AM_STORAGE_SERVICE_SSL_CERT_FILE') }}"
+    am_storage_service_ssl_key_file:
+      "{{ lookup('env', 'AM_STORAGE_SERVICE_SSL_KEY_FILE') }}"
+    am_storage_service_target_port:
+      "{{ lookup('env', 'AM_STORAGE_SERVICE_TARGET_PORT') }}"
+
+    # Shibboleth SP config
+    shibboleth_idp_entity_id:
+      "{{ lookup('env', 'SHIBBOLETH_IDP_ENTITY_ID')}}"
+    shibboleth_metadata_url_subst:
+      "{{ lookup('env', 'SHIBBOLETH_METADATA_URL_SUBST')}}"
+    shibboleth_metadata_signing_cert:
+      "{{ lookup('env', 'SHIBBOLETH_METADATA_SIGNING_CERT') }}"
+    shibboleth_support_email:
+      "{{ lookup('env', 'SHIBBOLETH_SUPPORT_EMAIL') }}"
+
+    # Port to run apache on
     apache_ports:
-     - 80
+      - 80
 
   roles:
-    - {role: 'shibboleth-config' }
-    - {role: 'jobs' }
-    - {role: 'virtualhost' }
+    - {role: 'shibboleth-config'}
+    - {role: 'jobs'}
+    - {role: 'virtualhost'}

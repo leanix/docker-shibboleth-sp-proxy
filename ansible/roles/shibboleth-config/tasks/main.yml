@@ -1,17 +1,17 @@
 ---
 
 - name: Enable apache2 shibboleth module
-  become: yes
+  become: "yes"
   command: a2enmod shib2 creates=/etc/apache2/mods-enabled/shib2.load
 
 - name: Setup shibboleth2.xml
-  become: yes
+  become: "yes"
   template: src=shibboleth2.xml.j2 dest=/etc/shibboleth/shibboleth2.xml
 
 - name: copying configuration which attributes are evaluated
-  become: yes
+  become: "yes"
   template: src=attribute-map.xml dest=/etc/shibboleth/attribute-map.xml
 
 - name: copying logger config
-  become: yes
+  become: "yes"
   copy: src=shibd.logger dest=/etc/shibboleth/shibd.logger

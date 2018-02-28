@@ -1,3 +1,7 @@
 ---
 - name: Create jobs
-  template: src=tasks.conf.j2 dest=/etc/supervisor/conf.d/leanix.conf owner=root mode=0755
+  template:
+    src=tasks.conf.j2
+    dest=/etc/supervisor/conf.d/leanix.conf
+    owner=root
+    mode=0755
